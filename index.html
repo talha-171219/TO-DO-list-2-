@@ -93,6 +93,33 @@ function TaskList({tasks,onToggle,onDelete}){ const fmt=ts=>ts?new Intl.DateTime
 function App(){ const [user,setUser]=useState(null); const [lists,setLists]=useState([]); const [active,setActive]=useState(null); const [tasks,setTasks]=useState([]); useEffect(()=>onAuthStateChanged(auth,u=>setUser(u)),[]); useEffect(()=>{if(user){const unsub=onSnapshot(collection(db,'users',user.uid,'lists'),snap=>{const arr=snap.docs.map(d=>({id:d.id,...d.data()}));setLists(arr);if(!active&&arr.length)setActive(arr[0].id)});return unsub}},[user]); useEffect(()=>{if(user&&active){const q=query(collection(db,'users',user.uid,'lists',active,'tasks'),orderBy('createdAt','desc'));const unsub=onSnapshot(q,snap=>setTasks(snap.docs.map(d=>({id:d.id,...d.data()}))));return unsub}},[user,active]); const signIn=()=>signInWithPopup(auth,new GoogleAuthProvider()); const signOutNow=()=>signOut(auth); const addList=async()=>{const name=prompt('লিস্টের নাম দিন'); if(name&&user){await addDoc(collection(db,'users',user.uid,'lists'),{name});}}; const addTask=async({title,delayMs})=>{if(user&&active){const data={title,completed:false,createdAt:serverTimestamp()}; if(delayMs){data.reminderAt=new Date(Date.now()+delayMs).toISOString();} await addDoc(collection(db,'users',user.uid,'lists',active,'tasks'),data); if(delayMs){scheduleLocalReminder(title,delayMs);} }}; const toggleTask=t=>updateDoc(doc(db,'users',user.uid,'lists',active,'tasks',t.id),{completed:!t.completed}); const delTask=t=>deleteDoc(doc(db,'users',user.uid,'lists',active,'tasks',t.id)); return React.createElement('div',{className:'wrap'}, React.createElement(Header,{user,onSignIn:signIn,onSignOut:signOutNow}), React.createElement(TopBar), user&&React.createElement(Tabs,{lists,active,onSelect:setActive,onAdd:addList}), user&&active&&React.createElement(AddTask,{onAdd:addTask}), user&&active&&React.createElement(TaskList,{tasks,onToggle:toggleTask,onDelete:delTask})); }
 
 createRoot(document.getElementById('root')).render(React.createElement(App));
-  </script>
+  </script> 
+  <!-- Firebase App (Core SDK) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+<!-- Firestore SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+<!-- Auth SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+<script>
+  // Firebase Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyDq0wNxY6YrOqglvnGs-vj76Z7Y3l62xhg",
+    authDomain: "to-do-list-2-ee860.firebaseapp.com",
+    databaseURL: "https://to-do-list-2-ee860-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "to-do-list-2-ee860",
+    storageBucket: "to-do-list-2-ee860.appspot.com",
+    messagingSenderId: "144820574484",
+    appId: "1:144820574484:web:6b097b94461a1c669d8a01"
+  };
+
+  // Initialize Firebase
+  const app = firebase.initializeApp(firebaseConfig);
+
+  // Initialize Firestore
+  const db = firebase.firestore();
+
+  // Initialize Auth
+  const auth = firebase.auth();
+</script>
 </body>
 </html>
